@@ -44,7 +44,7 @@ function Cotizador() {
   const clp = (v) =>
     v.toLocaleString("es-CL", { style: "currency", currency: "CLP" });
 
-  // 📄 GENERAR PDF (FIX MOBILE)
+  // 📄 PDF GENERACIÓN REAL
   const generarPDF = async () => {
     setModoPDF(true);
 
@@ -61,10 +61,9 @@ function Cotizador() {
       pdf.save("cotizacion.pdf");
 
       setModoPDF(false);
-    }, 500);
+    }, 300);
   };
 
-  // 📲 WHATSAPP
   const enviarWhatsApp = async () => {
     await generarPDF();
 
@@ -72,164 +71,134 @@ function Cotizador() {
 
 Te envío la cotización de OUTIN Seguridad 🔒
 
-Quedo atento a cualquier duda 👍`;
+Quedo atento 👍`;
 
     const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
     window.open(url, "_blank");
   };
 
+  // 🎨 ESTILOS PDF
+  const th = { border: "1px solid #ccc", padding: "8px" };
+  const td = { border: "1px solid #ccc", padding: "8px" };
+  const tdCenter = { ...td, textAlign: "center" };
+  const tdRight = { ...td, textAlign: "right" };
+
   return (
     <div className="container mt-3">
 
-      {/* INFO MOBILE */}
       {!modoPDF && (
-        <p style={{ fontSize: "12px", color: "gray" }}>
-          Desliza horizontalmente para ver la cotización completa →
-        </p>
-      )}
-
-      {/* BOTONES */}
-      {!modoPDF && (
-        <div className="mb-3 d-flex flex-wrap gap-2">
-          {Object.keys(plantillas).map((k) => (
-            <button key={k} className="btn btn-dark btn-sm"
-              onClick={() => agregarDesdePlantilla(k)}>
-              {k}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* DATOS */}
-      {!modoPDF && (
-        <div className="row mb-3">
-          <div className="col-12 col-md-6 mb-2">
-            <input className="form-control" placeholder="Cliente"
-              onChange={(e) => setCliente(e.target.value)} />
+        <>
+          {/* BOTONES */}
+          <div className="mb-3 d-flex flex-wrap gap-2">
+            {Object.keys(plantillas).map((k) => (
+              <button key={k} className="btn btn-dark btn-sm"
+                onClick={() => agregarDesdePlantilla(k)}>
+                {k}
+              </button>
+            ))}
           </div>
-          <div className="col-12 col-md-6">
-            <input type="date" className="form-control"
-              onChange={(e) => setFecha(e.target.value)} />
+
+          {/* DATOS */}
+          <div className="row mb-3">
+            <div className="col-12 col-md-6 mb-2">
+              <input className="form-control" placeholder="Cliente"
+                onChange={(e) => setCliente(e.target.value)} />
+            </div>
+            <div className="col-12 col-md-6">
+              <input type="date" className="form-control"
+                onChange={(e) => setFecha(e.target.value)} />
+            </div>
           </div>
-        </div>
+        </>
       )}
 
-      {/* CONTENEDOR SCROLL MOBILE */}
-      <div style={{ overflowX: "auto" }}>
+      {/* 🧾 PDF REAL */}
+      <div
+        ref={pdfRef}
+        style={{
+          width: "794px",
+          height: "1123px",
+          margin: "auto",
+          background: "white",
+          padding: "40px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          fontFamily: "Arial"
+        }}
+      >
 
-        {/* HOJA PDF REAL */}
-        <div
-          ref={pdfRef}
-          style={{
-            width: "794px",        // 🔥 FIX MOBILE
-            minHeight: "1123px",   // 🔥 FIX MOBILE
-            margin: "auto",
-            padding: "40px",
-            background: "white",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            fontSize: "12px"
-          }}
-        >
-
-          {/* HEADER */}
-          <div>
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <div className="d-flex align-items-center gap-2">
-                <img src={logo} style={{ width: "70px" }} />
-                <div>
-                  <strong>OUTIN Seguridad</strong>
-                  <div style={{ fontSize: "10px" }}>Servicios de CCTV</div>
-                </div>
-              </div>
-
-              <div style={{ textAlign: "right" }}>
-                <div><strong>Fecha:</strong> {fecha}</div>
-                <div><strong>Cliente:</strong> {cliente}</div>
-              </div>
-            </div>
-
-            <h4 className="text-center mb-3">COTIZACIÓN</h4>
-
-            {/* TABLA */}
-            <table className="table table-bordered text-center">
-              <thead className="table-secondary">
-                <tr>
-                  <th>Detalle</th>
-                  <th>Cant.</th>
-                  <th>P.U.</th>
-                  <th>Subtotal</th>
-                  {!modoPDF && <th></th>}
-                </tr>
-              </thead>
-
-              <tbody>
-                {items.map((it, i) => (
-                  <tr key={i}>
-                    <td>
-                      {modoPDF ? it.descripcion : (
-                        <input className="form-control"
-                          value={it.descripcion}
-                          onChange={(e) => actualizarItem(i, "descripcion", e.target.value)} />
-                      )}
-                    </td>
-
-                    <td>
-                      {modoPDF ? it.cantidad : (
-                        <input type="number" className="form-control"
-                          value={it.cantidad}
-                          onChange={(e) => actualizarItem(i, "cantidad", Number(e.target.value))} />
-                      )}
-                    </td>
-
-                    <td>
-                      {modoPDF ? clp(it.precio) : (
-                        <input type="number" className="form-control"
-                          value={it.precio}
-                          onChange={(e) => actualizarItem(i, "precio", Number(e.target.value))} />
-                      )}
-                    </td>
-
-                    <td><strong>{clp(it.cantidad * it.precio)}</strong></td>
-
-                    {!modoPDF && (
-                      <td>
-                        <button className="btn btn-danger btn-sm"
-                          onClick={() => eliminarItem(i)}>X</button>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* TOTALES */}
-            <div className="text-end mt-3">
-              <div>Subtotal: {clp(subtotal)}</div>
-              <div>IVA (19%): {clp(iva)}</div>
-              <h5><strong>TOTAL: {clp(total)}</strong></h5>
-            </div>
-
-            {/* NOTAS SIN PUNTOS */}
-            <div className="text-center mt-4">
-              <strong>Notas:</strong>
-              <div>Instalación incluye configuración completa.</div>
-              <div>Garantía 12 meses.</div>
-              <div>Plan de mantención disponible.</div>
+        {/* HEADER */}
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <img src={logo} style={{ width: "80px" }} />
+            <div>
+              <div style={{ fontWeight: "bold" }}>OUTIN Seguridad</div>
+              <div style={{ fontSize: "12px" }}>Servicios de CCTV</div>
             </div>
           </div>
 
-          {/* FOOTER */}
-          <div style={{ textAlign: "center", marginTop: "20px", fontSize: "10px" }}>
-            Nicolás Lippi Lira - 2026<br />
-            contacto: +56 9 9798 0146 - nicolaslippilira@outinapp.com
+          <div style={{ textAlign: "right", fontSize: "12px" }}>
+            <div><strong>Fecha:</strong> {fecha}</div>
+            <div><strong>Cliente:</strong> {cliente}</div>
           </div>
-
         </div>
+
+        <h2 style={{ textAlign: "center", margin: "20px 0" }}>
+          COTIZACIÓN
+        </h2>
+
+        {/* TABLA */}
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+          <thead>
+            <tr style={{ background: "#eee" }}>
+              <th style={th}>Detalle</th>
+              <th style={th}>Cant.</th>
+              <th style={th}>P.U.</th>
+              <th style={th}>Subtotal</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {items.map((it, i) => (
+              <tr key={i}>
+                <td style={td}>{it.descripcion}</td>
+                <td style={tdCenter}>{it.cantidad}</td>
+                <td style={tdRight}>{clp(it.precio)}</td>
+                <td style={tdRight}>
+                  <strong>{clp(it.cantidad * it.precio)}</strong>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* TOTALES */}
+        <div style={{ textAlign: "right", marginTop: "20px" }}>
+          <div>Subtotal: {clp(subtotal)}</div>
+          <div>IVA (19%): {clp(iva)}</div>
+          <div style={{ fontWeight: "bold", fontSize: "16px" }}>
+            TOTAL: {clp(total)}
+          </div>
+        </div>
+
+        {/* NOTAS */}
+        <div style={{ textAlign: "center", marginTop: "20px", fontSize: "12px" }}>
+          <div><strong>Notas:</strong></div>
+          <div>Instalación incluye configuración completa.</div>
+          <div>Garantía 12 meses.</div>
+          <div>Plan de mantención disponible.</div>
+        </div>
+
+        {/* FOOTER */}
+        <div style={{ textAlign: "center", fontSize: "10px" }}>
+          Nicolás Lippi Lira - 2026<br />
+          contacto: +56 9 9798 0146 - nicolaslippilira@outinapp.com
+        </div>
+
       </div>
 
-      {/* BOTONES */}
       {!modoPDF && (
         <div className="text-center mt-3">
           <button className="btn btn-success me-2" onClick={generarPDF}>
