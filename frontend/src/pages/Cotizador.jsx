@@ -44,7 +44,7 @@ function Cotizador() {
   const clp = (v) =>
     v.toLocaleString("es-CL", { style: "currency", currency: "CLP" });
 
-  // 📄 PDF GENERACIÓN REAL
+  // PDF
   const generarPDF = async () => {
     setModoPDF(true);
 
@@ -64,6 +64,7 @@ function Cotizador() {
     }, 300);
   };
 
+  // WhatsApp
   const enviarWhatsApp = async () => {
     await generarPDF();
 
@@ -77,7 +78,7 @@ Quedo atento 👍`;
     window.open(url, "_blank");
   };
 
-  // 🎨 ESTILOS PDF
+  // estilos tabla PDF
   const th = { border: "1px solid #ccc", padding: "8px" };
   const td = { border: "1px solid #ccc", padding: "8px" };
   const tdCenter = { ...td, textAlign: "center" };
@@ -112,91 +113,103 @@ Quedo atento 👍`;
         </>
       )}
 
-      {/* 🧾 PDF REAL */}
-      <div
-        ref={pdfRef}
-        style={{
-          width: "794px",
-          height: "1123px",
-          margin: "auto",
-          background: "white",
-          padding: "40px",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          fontFamily: "Arial"
-        }}
-      >
+      {/* 🔥 SCALE MOBILE FIX */}
+      <div style={{
+        width: "100%",
+        overflow: "hidden",
+        display: "flex",
+        justifyContent: "center"
+      }}>
+        <div style={{
+          transform: "scale(0.6)",
+          transformOrigin: "top center"
+        }}>
 
-        {/* HEADER */}
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
-          
-          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-            <img src={logo} style={{ width: "80px" }} />
-            <div>
-              <div style={{ fontWeight: "bold" }}>OUTIN Seguridad</div>
-              <div style={{ fontSize: "12px" }}>Servicios de CCTV</div>
+          {/* 📄 PDF REAL */}
+          <div
+            ref={pdfRef}
+            style={{
+              width: "794px",
+              height: "1123px",
+              background: "white",
+              padding: "40px",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              fontFamily: "Arial"
+            }}
+          >
+
+            {/* HEADER */}
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                <img src={logo} style={{ width: "80px" }} />
+                <div>
+                  <div style={{ fontWeight: "bold" }}>OUTIN Seguridad</div>
+                  <div style={{ fontSize: "12px" }}>Servicios de CCTV</div>
+                </div>
+              </div>
+
+              <div style={{ textAlign: "right", fontSize: "12px" }}>
+                <div><strong>Fecha:</strong> {fecha}</div>
+                <div><strong>Cliente:</strong> {cliente}</div>
+              </div>
             </div>
+
+            <h2 style={{ textAlign: "center", margin: "20px 0" }}>
+              COTIZACIÓN
+            </h2>
+
+            {/* TABLA */}
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+              <thead>
+                <tr style={{ background: "#eee" }}>
+                  <th style={th}>Detalle</th>
+                  <th style={th}>Cant.</th>
+                  <th style={th}>P.U.</th>
+                  <th style={th}>Subtotal</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {items.map((it, i) => (
+                  <tr key={i}>
+                    <td style={td}>{it.descripcion}</td>
+                    <td style={tdCenter}>{it.cantidad}</td>
+                    <td style={tdRight}>{clp(it.precio)}</td>
+                    <td style={tdRight}>
+                      <strong>{clp(it.cantidad * it.precio)}</strong>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* TOTALES */}
+            <div style={{ textAlign: "right", marginTop: "20px" }}>
+              <div>Subtotal: {clp(subtotal)}</div>
+              <div>IVA (19%): {clp(iva)}</div>
+              <div style={{ fontWeight: "bold", fontSize: "16px" }}>
+                TOTAL: {clp(total)}
+              </div>
+            </div>
+
+            {/* NOTAS */}
+            <div style={{ textAlign: "center", marginTop: "20px", fontSize: "12px" }}>
+              <div><strong>Notas:</strong></div>
+              <div>Instalación incluye configuración completa.</div>
+              <div>Garantía 12 meses.</div>
+              <div>Plan de mantención disponible.</div>
+            </div>
+
+            {/* FOOTER */}
+            <div style={{ textAlign: "center", fontSize: "10px" }}>
+              Nicolás Lippi Lira - 2026<br />
+              contacto: +56 9 9798 0146 - nicolaslippilira@outinapp.com
+            </div>
+
           </div>
-
-          <div style={{ textAlign: "right", fontSize: "12px" }}>
-            <div><strong>Fecha:</strong> {fecha}</div>
-            <div><strong>Cliente:</strong> {cliente}</div>
-          </div>
         </div>
-
-        <h2 style={{ textAlign: "center", margin: "20px 0" }}>
-          COTIZACIÓN
-        </h2>
-
-        {/* TABLA */}
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
-          <thead>
-            <tr style={{ background: "#eee" }}>
-              <th style={th}>Detalle</th>
-              <th style={th}>Cant.</th>
-              <th style={th}>P.U.</th>
-              <th style={th}>Subtotal</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {items.map((it, i) => (
-              <tr key={i}>
-                <td style={td}>{it.descripcion}</td>
-                <td style={tdCenter}>{it.cantidad}</td>
-                <td style={tdRight}>{clp(it.precio)}</td>
-                <td style={tdRight}>
-                  <strong>{clp(it.cantidad * it.precio)}</strong>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {/* TOTALES */}
-        <div style={{ textAlign: "right", marginTop: "20px" }}>
-          <div>Subtotal: {clp(subtotal)}</div>
-          <div>IVA (19%): {clp(iva)}</div>
-          <div style={{ fontWeight: "bold", fontSize: "16px" }}>
-            TOTAL: {clp(total)}
-          </div>
-        </div>
-
-        {/* NOTAS */}
-        <div style={{ textAlign: "center", marginTop: "20px", fontSize: "12px" }}>
-          <div><strong>Notas:</strong></div>
-          <div>Instalación incluye configuración completa.</div>
-          <div>Garantía 12 meses.</div>
-          <div>Plan de mantención disponible.</div>
-        </div>
-
-        {/* FOOTER */}
-        <div style={{ textAlign: "center", fontSize: "10px" }}>
-          Nicolás Lippi Lira - 2026<br />
-          contacto: +56 9 9798 0146 - nicolaslippilira@outinapp.com
-        </div>
-
       </div>
 
       {!modoPDF && (
