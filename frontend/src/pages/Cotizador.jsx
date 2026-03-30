@@ -6,7 +6,6 @@ import logo from "../assets/logo.png";
 function Cotizador() {
   const pdfRef = useRef();
 
-  const [modoPDF, setModoPDF] = useState(false);
   const [cliente, setCliente] = useState("");
   const [fecha, setFecha] = useState("");
 
@@ -44,27 +43,20 @@ function Cotizador() {
   const clp = (v) =>
     v.toLocaleString("es-CL", { style: "currency", currency: "CLP" });
 
-  // PDF
+  // PDF FINAL (contenedor oculto)
   const generarPDF = async () => {
-    setModoPDF(true);
+    const canvas = await html2canvas(pdfRef.current, {
+      scale: 2,
+      useCORS: true
+    });
 
-    setTimeout(async () => {
-      const canvas = await html2canvas(pdfRef.current, {
-        scale: 3,
-        useCORS: true
-      });
+    const imgData = canvas.toDataURL("image/png");
 
-      const imgData = canvas.toDataURL("image/png");
-
-      const pdf = new jsPDF("p", "mm", "a4");
-      pdf.addImage(imgData, "PNG", 0, 0, 210, 297);
-      pdf.save("cotizacion.pdf");
-
-      setModoPDF(false);
-    }, 300);
+    const pdf = new jsPDF("p", "mm", "a4");
+    pdf.addImage(imgData, "PNG", 0, 0, 210, 297);
+    pdf.save("cotizacion.pdf");
   };
 
-  // WhatsApp
   const enviarWhatsApp = async () => {
     await generarPDF();
 
@@ -78,7 +70,7 @@ Quedo atento 👍`;
     window.open(url, "_blank");
   };
 
-  // estilos tabla PDF
+  // estilos PDF
   const th = { border: "1px solid #ccc", padding: "8px" };
   const td = { border: "1px solid #ccc", padding: "8px" };
   const tdCenter = { ...td, textAlign: "center" };
@@ -87,142 +79,171 @@ Quedo atento 👍`;
   return (
     <div className="container mt-3">
 
-      {!modoPDF && (
-        <>
-          {/* BOTONES */}
-          <div className="mb-3 d-flex flex-wrap gap-2">
-            {Object.keys(plantillas).map((k) => (
-              <button key={k} className="btn btn-dark btn-sm"
-                onClick={() => agregarDesdePlantilla(k)}>
-                {k}
-              </button>
-            ))}
-          </div>
+      {/* UI NORMAL */}
+      <div className="mb-3 d-flex flex-wrap gap-2">
+        {Object.keys(plantillas).map((k) => (
+          <button key={k} className="btn btn-dark btn-sm"
+            onClick={() => agregarDesdePlantilla(k)}>
+            {k}
+          </button>
+        ))}
+      </div>
 
-          {/* DATOS */}
-          <div className="row mb-3">
-            <div className="col-12 col-md-6 mb-2">
-              <input className="form-control" placeholder="Cliente"
-                onChange={(e) => setCliente(e.target.value)} />
-            </div>
-            <div className="col-12 col-md-6">
-              <input type="date" className="form-control"
-                onChange={(e) => setFecha(e.target.value)} />
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* 🔥 SCALE MOBILE FIX */}
-      <div style={{
-        width: "100%",
-        overflow: "hidden",
-        display: "flex",
-        justifyContent: "center"
-      }}>
-        <div style={{
-          transform: "scale(0.6)",
-          transformOrigin: "top center"
-        }}>
-
-          {/* 📄 PDF REAL */}
-          <div
-            ref={pdfRef}
-            style={{
-              width: "794px",
-              height: "1123px",
-              background: "white",
-              padding: "40px",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              fontFamily: "Arial"
-            }}
-          >
-
-            {/* HEADER */}
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                <img src={logo} style={{ width: "80px" }} />
-                <div>
-                  <div style={{ fontWeight: "bold" }}>OUTIN Seguridad</div>
-                  <div style={{ fontSize: "12px" }}>Servicios de CCTV</div>
-                </div>
-              </div>
-
-              <div style={{ textAlign: "right", fontSize: "12px" }}>
-                <div><strong>Fecha:</strong> {fecha}</div>
-                <div><strong>Cliente:</strong> {cliente}</div>
-              </div>
-            </div>
-
-            <h2 style={{ textAlign: "center", margin: "20px 0" }}>
-              COTIZACIÓN
-            </h2>
-
-            {/* TABLA */}
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
-              <thead>
-                <tr style={{ background: "#eee" }}>
-                  <th style={th}>Detalle</th>
-                  <th style={th}>Cant.</th>
-                  <th style={th}>P.U.</th>
-                  <th style={th}>Subtotal</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {items.map((it, i) => (
-                  <tr key={i}>
-                    <td style={td}>{it.descripcion}</td>
-                    <td style={tdCenter}>{it.cantidad}</td>
-                    <td style={tdRight}>{clp(it.precio)}</td>
-                    <td style={tdRight}>
-                      <strong>{clp(it.cantidad * it.precio)}</strong>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* TOTALES */}
-            <div style={{ textAlign: "right", marginTop: "20px" }}>
-              <div>Subtotal: {clp(subtotal)}</div>
-              <div>IVA (19%): {clp(iva)}</div>
-              <div style={{ fontWeight: "bold", fontSize: "16px" }}>
-                TOTAL: {clp(total)}
-              </div>
-            </div>
-
-            {/* NOTAS */}
-            <div style={{ textAlign: "center", marginTop: "20px", fontSize: "12px" }}>
-              <div><strong>Notas:</strong></div>
-              <div>Instalación incluye configuración completa.</div>
-              <div>Garantía 12 meses.</div>
-              <div>Plan de mantención disponible.</div>
-            </div>
-
-            {/* FOOTER */}
-            <div style={{ textAlign: "center", fontSize: "10px" }}>
-              Nicolás Lippi Lira - 2026<br />
-              contacto: +56 9 9798 0146 - nicolaslippilira@outinapp.com
-            </div>
-
-          </div>
+      <div className="row mb-3">
+        <div className="col-12 col-md-6 mb-2">
+          <input className="form-control" placeholder="Cliente"
+            onChange={(e) => setCliente(e.target.value)} />
+        </div>
+        <div className="col-12 col-md-6">
+          <input type="date" className="form-control"
+            onChange={(e) => setFecha(e.target.value)} />
         </div>
       </div>
 
-      {!modoPDF && (
-        <div className="text-center mt-3">
-          <button className="btn btn-success me-2" onClick={generarPDF}>
-            Descargar PDF
-          </button>
+      {/* TABLA EDICIÓN */}
+      <table className="table table-bordered text-center">
+        <thead className="table-secondary">
+          <tr>
+            <th>Detalle</th>
+            <th>Cant.</th>
+            <th>P.U.</th>
+            <th>Subtotal</th>
+            <th></th>
+          </tr>
+        </thead>
 
-          <button className="btn btn-success" onClick={enviarWhatsApp}>
-            Enviar por WhatsApp
-          </button>
+        <tbody>
+          {items.map((it, i) => (
+            <tr key={i}>
+              <td>
+                <input className="form-control"
+                  value={it.descripcion}
+                  onChange={(e) => actualizarItem(i, "descripcion", e.target.value)} />
+              </td>
+              <td>
+                <input type="number" className="form-control"
+                  value={it.cantidad}
+                  onChange={(e) => actualizarItem(i, "cantidad", Number(e.target.value))} />
+              </td>
+              <td>
+                <input type="number" className="form-control"
+                  value={it.precio}
+                  onChange={(e) => actualizarItem(i, "precio", Number(e.target.value))} />
+              </td>
+              <td><strong>{clp(it.cantidad * it.precio)}</strong></td>
+              <td>
+                <button className="btn btn-danger btn-sm"
+                  onClick={() => eliminarItem(i)}>X</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* TOTALES */}
+      <div className="text-end">
+        <div>Subtotal: {clp(subtotal)}</div>
+        <div>IVA (19%): {clp(iva)}</div>
+        <h5><strong>TOTAL: {clp(total)}</strong></h5>
+      </div>
+
+      {/* BOTONES */}
+      <div className="text-center mt-3">
+        <button className="btn btn-success me-2" onClick={generarPDF}>
+          Descargar PDF
+        </button>
+
+        <button className="btn btn-success" onClick={enviarWhatsApp}>
+          Enviar por WhatsApp
+        </button>
+      </div>
+
+      {/* 🔥 CONTENEDOR PDF OCULTO (CLAVE) */}
+      <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+        <div
+          ref={pdfRef}
+          style={{
+            width: "794px",
+            height: "1123px",
+            background: "white",
+            padding: "40px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            fontFamily: "Arial"
+          }}
+        >
+
+          {/* HEADER */}
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+              <img src={logo} style={{ width: "80px" }} />
+              <div>
+                <div style={{ fontWeight: "bold" }}>OUTIN Seguridad</div>
+                <div style={{ fontSize: "12px" }}>Servicios de CCTV</div>
+              </div>
+            </div>
+
+            <div style={{ textAlign: "right", fontSize: "12px" }}>
+              <div><strong>Fecha:</strong> {fecha}</div>
+              <div><strong>Cliente:</strong> {cliente}</div>
+            </div>
+          </div>
+
+          <h2 style={{ textAlign: "center", margin: "20px 0" }}>
+            COTIZACIÓN
+          </h2>
+
+          {/* TABLA PDF */}
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+            <thead>
+              <tr style={{ background: "#eee" }}>
+                <th style={th}>Detalle</th>
+                <th style={th}>Cant.</th>
+                <th style={th}>P.U.</th>
+                <th style={th}>Subtotal</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {items.map((it, i) => (
+                <tr key={i}>
+                  <td style={td}>{it.descripcion}</td>
+                  <td style={tdCenter}>{it.cantidad}</td>
+                  <td style={tdRight}>{clp(it.precio)}</td>
+                  <td style={tdRight}>
+                    <strong>{clp(it.cantidad * it.precio)}</strong>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* TOTALES */}
+          <div style={{ textAlign: "right", marginTop: "20px" }}>
+            <div>Subtotal: {clp(subtotal)}</div>
+            <div>IVA (19%): {clp(iva)}</div>
+            <div style={{ fontWeight: "bold", fontSize: "16px" }}>
+              TOTAL: {clp(total)}
+            </div>
+          </div>
+
+          {/* NOTAS */}
+          <div style={{ textAlign: "center", fontSize: "12px" }}>
+            <div><strong>Notas:</strong></div>
+            <div>Instalación incluye configuración completa.</div>
+            <div>Garantía 12 meses.</div>
+            <div>Plan de mantención disponible.</div>
+          </div>
+
+          {/* FOOTER */}
+          <div style={{ textAlign: "center", fontSize: "10px" }}>
+            Nicolás Lippi Lira - 2026<br />
+            contacto: +56 9 9798 0146 - nicolaslippilira@outinapp.com
+          </div>
+
         </div>
-      )}
+      </div>
 
     </div>
   );
